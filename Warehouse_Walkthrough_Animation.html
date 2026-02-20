@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FutureTech Logistics — Warehouse Walkthrough 2030</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&display=swap');
+:root{--navy:#0D1B2A;--teal:#00FFD1;--gold:#F4A422;--white:#E8F4F8;--green:#00FF88;--blue:#00AAFF;--orange:#FF8C00;--purple:#9B59FF;--red:#FF4444;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#04080F;font-family:'Rajdhani',sans-serif;color:var(--white);overflow:hidden;height:100vh;width:100vw;cursor:crosshair;}
+.grid-bg{position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,209,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,209,0.05) 1px,transparent 1px);background-size:40px 40px;z-index:0;}
+.grid-bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 30%,#04080F 100%);}
+.scanlines{position:fixed;inset:0;z-index:5;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);}
+.header{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:10px 24px;background:rgba(4,8,15,0.96);border-bottom:1px solid rgba(0,255,209,0.15);}
+.logo{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;color:var(--teal);letter-spacing:3px;text-shadow:0 0 20px rgba(0,255,209,0.5);}
+.logo span{color:var(--gold);}
+.header-status{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,255,209,0.5);letter-spacing:2px;}
+.corner{position:fixed;width:36px;height:36px;z-index:100;}
+.corner.tl{top:6px;left:6px;border-top:2px solid rgba(0,255,209,0.3);border-left:2px solid rgba(0,255,209,0.3);}
+.corner.tr{top:6px;right:6px;border-top:2px solid rgba(0,255,209,0.3);border-right:2px solid rgba(0,255,209,0.3);}
+.corner.bl{bottom:6px;left:6px;border-bottom:2px solid rgba(0,255,209,0.3);border-left:2px solid rgba(0,255,209,0.3);}
+.corner.br{bottom:6px;right:6px;border-bottom:2px solid rgba(0,255,209,0.3);border-right:2px solid rgba(0,255,209,0.3);}
+.zone-panel{position:fixed;right:20px;top:60px;width:268px;background:rgba(4,8,15,0.94);border:1px solid rgba(0,255,209,0.2);border-radius:3px;padding:14px;z-index:100;backdrop-filter:blur(12px);transform:translateX(300px);transition:transform 0.5s cubic-bezier(0.16,1,0.3,1);}
+.zone-panel.visible{transform:translateX(0);}
+.panel-tag{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:3px;color:var(--teal);margin-bottom:5px;opacity:0.7;}
+.panel-title{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;margin-bottom:8px;line-height:1.3;}
+.panel-divider{height:1px;background:rgba(0,255,209,0.15);margin-bottom:10px;}
+.zone-fact{display:flex;align-items:flex-start;gap:7px;margin-bottom:7px;font-size:11.5px;color:rgba(232,244,248,0.8);line-height:1.4;}
+.fact-icon{font-size:11px;margin-top:1px;flex-shrink:0;}
+.stat-num{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;margin-top:10px;line-height:1;}
+.stat-label{font-size:9px;color:rgba(0,255,209,0.5);letter-spacing:2px;margin-top:2px;}
+.canvas-wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;}
+#wh-svg{width:86vw;max-width:1060px;height:auto;}
+.step-label{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:rgba(0,255,209,0.45);z-index:100;text-align:center;white-space:nowrap;}
+.controls{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;z-index:100;background:rgba(4,8,15,0.92);border:1px solid rgba(0,255,209,0.2);border-radius:40px;padding:8px 20px;backdrop-filter:blur(10px);}
+.ctrl-btn{background:none;border:1px solid rgba(0,255,209,0.3);color:var(--teal);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:20px;cursor:pointer;transition:all 0.2s;}
+.ctrl-btn:hover,.ctrl-btn.active{background:rgba(0,255,209,0.1);border-color:var(--teal);box-shadow:0 0 10px rgba(0,255,209,0.2);}
+.cdivider{width:1px;height:22px;background:rgba(0,255,209,0.15);}
+.dots{display:flex;gap:5px;align-items:center;}
+.dot{width:5px;height:5px;border-radius:50%;background:rgba(0,255,209,0.15);transition:all 0.3s;}
+.dot.active{background:var(--teal);box-shadow:0 0 6px var(--teal);width:16px;border-radius:3px;}
+.dot.done{background:rgba(0,255,209,0.4);}
+.zone-label{font-family:'Orbitron',monospace;font-size:7.5px;font-weight:700;letter-spacing:1px;text-anchor:middle;dominant-baseline:middle;}
+.zone-sub{font-family:'Share Tech Mono',monospace;font-size:6px;text-anchor:middle;dominant-baseline:middle;opacity:0.6;}
+.dim-txt{font-family:'Share Tech Mono',monospace;font-size:8px;fill:rgba(0,255,209,0.35);letter-spacing:1px;}
+@keyframes walkBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes ringPulse{0%{r:10;opacity:0.7}100%{r:28;opacity:0}}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="scanlines"></div>
+<div class="corner tl"></div><div class="corner tr"></div>
+<div class="corner bl"></div><div class="corner br"></div>
+<div class="header">
+  <div class="logo">FUTURE<span>TECH</span> LOGISTICS</div>
+  <div class="header-status" id="hStatus">WAREHOUSE WALKTHROUGH // 2030 // MUMBAI PORT</div>
+</div>
+
+<div class="zone-panel" id="zPanel">
+  <div class="panel-tag" id="pTag">START</div>
+  <div class="panel-title" id="pTitle">WAREHOUSE ENTRANCE</div>
+  <div class="panel-divider"></div>
+  <div id="pFacts"></div>
+  <div class="stat-num" id="pNum"></div>
+  <div class="stat-label" id="pLabel"></div>
+</div>
+
+<div class="canvas-wrap">
+<svg id="wh-svg" viewBox="0 0 900 530" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <filter id="fteal"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="fgold"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="fman"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <pattern id="ph1" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+    <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(0,255,209,0.1)" stroke-width="1"/>
+  </pattern>
+  <pattern id="ph2" patternUnits="userSpaceOnUse" width="8" height="8">
+    <line x1="0" y1="0" x2="8" y2="0" stroke="rgba(0,170,255,0.12)" stroke-width="1"/>
+  </pattern>
+  <pattern id="ph3" patternUnits="userSpaceOnUse" width="10" height="10">
+    <circle cx="5" cy="5" r="1" fill="rgba(0,255,136,0.18)"/>
+  </pattern>
+  <marker id="arrT" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+    <path d="M0,0 L6,3 L0,6 Z" fill="rgba(0,255,209,0.5)"/>
+  </marker>
+  <marker id="arrG" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+    <path d="M0,0 L6,3 L0,6 Z" fill="#F4A422"/>
+  </marker>
+</defs>
+
+<!-- Scale + North -->
+<line x1="18" y1="512" x2="118" y2="512" stroke="rgba(0,255,209,0.3)" stroke-width="1"/>
+<line x1="18" y1="507" x2="18" y2="517" stroke="rgba(0,255,209,0.3)" stroke-width="1"/>
+<line x1="118" y1="507" x2="118" y2="517" stroke="rgba(0,255,209,0.3)" stroke-width="1"/>
+<text x="68" y="525" class="dim-txt" text-anchor="middle">SCALE: 100ft per division</text>
+<text x="860" y="512" class="dim-txt" text-anchor="middle">N ↑</text>
+
+<!-- OUTER BOUNDARY -->
+<rect x="28" y="28" width="840" height="470" rx="2" fill="rgba(0,255,209,0.015)" stroke="#00FFD1" stroke-width="2.5" filter="url(#fteal)"/>
+
+<!-- Top dimension -->
+<line x1="28" y1="15" x2="868" y2="15" stroke="rgba(0,255,209,0.2)" stroke-width="0.8" marker-end="url(#arrT)" marker-start="url(#arrT)"/>
+<text x="448" y="11" class="dim-txt" text-anchor="middle">840 ft (~256m) TOTAL WIDTH</text>
+<!-- Side dimension -->
+<line x1="880" y1="28" x2="880" y2="498" stroke="rgba(0,255,209,0.2)" stroke-width="0.8" marker-end="url(#arrT)" marker-start="url(#arrT)"/>
+<text x="896" y="265" class="dim-txt" text-anchor="middle" transform="rotate(90,896,265)">470ft (~143m) TOTAL DEPTH</text>
+
+<!-- ── ZONE 1: RECEIVING (left strip) -->
+<g id="zg-receiving">
+  <rect x="28" y="28" width="140" height="230" fill="rgba(10,126,140,0.07)" stroke="#0A7E8C" stroke-width="1.5"/>
+  <rect x="28" y="28" width="140" height="230" fill="url(#ph1)" opacity="0.6"/>
+  <!-- 4 dock doors on left wall -->
+  <rect x="15" y="52" width="14" height="32" rx="1" fill="rgba(0,255,209,0.12)" stroke="#00FFD1" stroke-width="1"/>
+  <rect x="15" y="100" width="14" height="32" rx="1" fill="rgba(0,255,209,0.12)" stroke="#00FFD1" stroke-width="1"/>
+  <rect x="15" y="148" width="14" height="32" rx="1" fill="rgba(0,255,209,0.12)" stroke="#00FFD1" stroke-width="1"/>
+  <rect x="15" y="196" width="14" height="32" rx="1" fill="rgba(0,255,209,0.12)" stroke="#00FFD1" stroke-width="1"/>
+  <text x="26" y="68" class="dim-txt" text-anchor="end">D1</text>
+  <text x="26" y="116" class="dim-txt" text-anchor="end">D2</text>
+  <text x="26" y="164" class="dim-txt" text-anchor="end">D3</text>
+  <text x="26" y="212" class="dim-txt" text-anchor="end">D4</text>
+  <!-- inside dims -->
+  <line x1="30" y1="252" x2="166" y2="252" stroke="rgba(0,255,209,0.25)" stroke-width="0.7" marker-end="url(#arrT)" marker-start="url(#arrT)"/>
+  <text x="98" y="248" class="dim-txt" text-anchor="middle">140ft</text>
+  <text x="98" y="120" class="zone-label" fill="#00FFD1">RECEIVING</text>
+  <text x="98" y="133" class="zone-sub" fill="#00FFD1">4 INBOUND DOCKS</text>
+  <text x="98" y="143" class="zone-sub" fill="#00FFD1">13,000 SQ FT</text>
+</g>
+
+<!-- ── ZONE 2: QC / QUARANTINE -->
+<g id="zg-qc">
+  <rect x="28" y="258" width="140" height="110" fill="rgba(244,164,34,0.06)" stroke="#F4A422" stroke-width="1.5"/>
+  <text x="98" y="307" class="zone-label" fill="#F4A422">QC / QUARANTINE</text>
+  <text x="98" y="319" class="zone-sub" fill="#F4A422">INSPECTION + HOLD</text>
+  <text x="98" y="329" class="zone-sub" fill="#F4A422">5,400 SQ FT</text>
+</g>
+
+<!-- ── ZONE 3: RETURNS -->
+<g id="zg-returns">
+  <rect x="28" y="368" width="140" height="130" fill="rgba(255,68,68,0.06)" stroke="#FF4444" stroke-width="1.5"/>
+  <text x="98" y="425" class="zone-label" fill="#FF4444">RETURNS</text>
+  <text x="98" y="437" class="zone-sub" fill="#FF4444">RE-PROCESSING</text>
+  <text x="98" y="447" class="zone-sub" fill="#FF4444">6,500 SQ FT</text>
+</g>
+
+<!-- ── ZONE 4: AS/RS (large center-top) -->
+<g id="zg-asrs">
+  <rect x="168" y="28" width="480" height="218" fill="rgba(0,255,209,0.04)" stroke="#00FFD1" stroke-width="2"/>
+  <rect x="168" y="28" width="480" height="218" fill="url(#ph1)"/>
+  <!-- Rack columns -->
+  <line x1="210" y1="42" x2="210" y2="232" stroke="rgba(0,255,209,0.1)" stroke-width="0.8"/>
+  <line x1="252" y1="42" x2="252" y2="232" stroke="rgba(0,255,209,0.1)" stroke-width="0.8"/>
+  <line x1="294" y1="42" x2="294" y2="232" stroke="rgba(0,255,209,0.1)" stroke-width="0.8"/>
+  <line x1="336" y1="42" x2="336" y2="232" stroke="rgba(0,255,209,0.1)" stroke-width="0.8"/>
+  <line x1="378" y1="42" x2="378" y2="232" stroke="rgba(0,255,209,0.1)" stroke-width="0.8"/>
+  <line x1="420" y1="42" x2="420" y2="232" stroke="rgba(0,255,209,0.1)" stroke-width="0.8"/>
+  <line x1="462" y1="42" x2="462" y2="232" stroke="rgba(0,255,209,0.1)" stroke-width="0.8"/>
+  <line x1="504" y1="42" x2="504" y2="232" stroke="rgba(0,255,209,0.1)" stroke-width="0.8"/>
+  <line x1="546" y1="42" x2="546" y2="232" stroke="rgba(0,255,209,0.1)" stroke-width="0.8"/>
+  <line x1="588" y1="42" x2="588" y2="232" stroke="rgba(0,255,209,0.1)" stroke-width="0.8"/>
+  <line x1="630" y1="42" x2="630" y2="232" stroke="rgba(0,255,209,0.1)" stroke-width="0.8"/>
+  <!-- height callout -->
+  <line x1="640" y1="35" x2="640" y2="232" stroke="rgba(0,255,209,0.3)" stroke-width="0.8" marker-end="url(#arrT)" marker-start="url(#arrT)"/>
+  <text x="645" y="138" class="dim-txt">10m HT</text>
+  <!-- Width dim inside -->
+  <line x1="170" y1="238" x2="646" y2="238" stroke="rgba(0,255,209,0.25)" stroke-width="0.7" marker-end="url(#arrT)" marker-start="url(#arrT)"/>
+  <text x="408" y="234" class="dim-txt" text-anchor="middle">480ft</text>
+  <text x="400" y="105" class="zone-label" fill="#00FFD1" font-size="10">AS/RS AUTOMATED STORAGE</text>
+  <text x="400" y="120" class="zone-sub" fill="#00FFD1" font-size="7">UNIT-LOAD + MINI-LOAD STACKER CRANES | 10m CLEAR HEIGHT</text>
+  <text x="400" y="132" class="zone-sub" fill="#00FFD1" font-size="7">60,000+ SKUs | 104,640 SQ FT | 500 PALLETS/HR THROUGHPUT</text>
+</g>
+
+<!-- ── ZONE 5: MEZZANINE / OFFICE (top right) -->
+<g id="zg-office">
+  <rect x="648" y="28" width="140" height="148" fill="rgba(155,89,255,0.09)" stroke="#9B59FF" stroke-width="1.5"/>
+  <text x="718" y="90" class="zone-label" fill="#9B59FF">MEZZANINE</text>
+  <text x="718" y="102" class="zone-sub" fill="#9B59FF">WMS CONTROL ROOM</text>
+  <text x="718" y="112" class="zone-sub" fill="#9B59FF">ADMIN + OFFICES</text>
+  <text x="718" y="122" class="zone-sub" fill="#9B59FF">20,720 SQ FT</text>
+  <!-- Stair symbol -->
+  <rect x="654" y="158" width="16" height="3" fill="rgba(155,89,255,0.5)"/>
+  <rect x="654" y="163" width="16" height="3" fill="rgba(155,89,255,0.35)"/>
+  <rect x="654" y="168" width="16" height="3" fill="rgba(155,89,255,0.2)"/>
+  <text x="675" y="166" class="dim-txt" font-size="7">STAIRS↑</text>
+</g>
+
+<!-- ── ZONE 6: COLD STORAGE (top far right) -->
+<g id="zg-cold">
+  <rect x="788" y="28" width="80" height="148" fill="rgba(0,170,255,0.09)" stroke="#00AAFF" stroke-width="1.5"/>
+  <rect x="788" y="28" width="80" height="148" fill="url(#ph2)"/>
+  <text x="828" y="80" fill="rgba(0,170,255,0.55)" font-size="18" text-anchor="middle">❄</text>
+  <text x="828" y="97" class="zone-label" fill="#00AAFF">COLD ZONE</text>
+  <text x="828" y="109" class="zone-sub" fill="#00AAFF">PHARMA 2–8°C</text>
+  <text x="828" y="119" class="zone-sub" fill="#00AAFF">FROZEN –18°C</text>
+  <text x="828" y="129" class="zone-sub" fill="#00AAFF">11,840 SQ FT</text>
+</g>
+
+<!-- ── CONVEYOR SPINE -->
+<rect x="168" y="246" width="660" height="16" fill="rgba(244,164,34,0.12)" stroke="#F4A422" stroke-width="1.5"/>
+<line x1="178" y1="254" x2="818" y2="254" stroke="#F4A422" stroke-width="1" stroke-dasharray="14,7" marker-end="url(#arrG)"/>
+<text x="480" y="259" class="dim-txt" fill="#F4A422" text-anchor="middle" font-size="6.5">MAIN CONVEYOR SPINE — 660ft | 10,000 UNITS/HR</text>
+
+<!-- ── ZONE 7: AMR PICKING -->
+<g id="zg-amr">
+  <rect x="168" y="262" width="340" height="136" fill="rgba(0,255,136,0.06)" stroke="#00FF88" stroke-width="1.5"/>
+  <rect x="168" y="262" width="340" height="136" fill="url(#ph3)"/>
+  <!-- AMR path hints -->
+  <circle cx="230" cy="305" r="3.5" fill="rgba(0,255,136,0.25)"/>
+  <circle cx="295" cy="325" r="3.5" fill="rgba(0,255,136,0.25)"/>
+  <circle cx="370" cy="295" r="3.5" fill="rgba(0,255,136,0.25)"/>
+  <circle cx="450" cy="335" r="3.5" fill="rgba(0,255,136,0.25)"/>
+  <!-- dimension -->
+  <line x1="170" y1="392" x2="506" y2="392" stroke="rgba(0,255,136,0.25)" stroke-width="0.7" marker-end="url(#arrT)" marker-start="url(#arrT)"/>
+  <text x="338" y="388" class="dim-txt" fill="#00FF88" text-anchor="middle">340ft</text>
+  <text x="338" y="316" class="zone-label" fill="#00FF88">AMR PICKING ZONE</text>
+  <text x="338" y="328" class="zone-sub" fill="#00FF88">300 AMRs | GOODS-TO-PERSON | 12 PICK STATIONS</text>
+  <text x="338" y="338" class="zone-sub" fill="#00FF88">46,240 SQ FT</text>
+</g>
+
+<!-- ── ZONE 8: PACKING -->
+<g id="zg-packing">
+  <rect x="168" y="398" width="340" height="100" fill="rgba(255,140,0,0.07)" stroke="#FF8C00" stroke-width="1.5"/>
+  <!-- Packing lines -->
+  <line x1="182" y1="415" x2="500" y2="415" stroke="rgba(255,140,0,0.18)" stroke-width="2"/>
+  <line x1="182" y1="435" x2="500" y2="435" stroke="rgba(255,140,0,0.18)" stroke-width="2"/>
+  <line x1="182" y1="455" x2="500" y2="455" stroke="rgba(255,140,0,0.18)" stroke-width="2"/>
+  <text x="338" y="468" class="zone-label" fill="#FF8C00">PACKING & LABELING</text>
+  <text x="338" y="480" class="zone-sub" fill="#FF8C00">6 AUTOMATED LINES | COBOTS | AUTO-SEAL | 34,000 SQ FT</text>
+</g>
+
+<!-- ── ZONE 9: STAGING -->
+<g id="zg-staging">
+  <rect x="508" y="262" width="170" height="236" fill="rgba(0,170,255,0.06)" stroke="#00AAFF" stroke-width="1.5"/>
+  <text x="593" y="370" class="zone-label" fill="#00AAFF">STAGING</text>
+  <text x="593" y="382" class="zone-sub" fill="#00AAFF">CROSS-BELT SORTER</text>
+  <text x="593" y="392" class="zone-sub" fill="#00AAFF">CARRIER LANES</text>
+  <text x="593" y="402" class="zone-sub" fill="#00AAFF">40,120 SQ FT</text>
+</g>
+
+<!-- ── ZONE 10: DISPATCH -->
+<g id="zg-dispatch">
+  <rect x="678" y="176" width="190" height="322" fill="rgba(0,255,209,0.06)" stroke="#00FFD1" stroke-width="2"/>
+  <!-- Right-side dock doors -->
+  <rect x="866" y="200" width="14" height="30" rx="1" fill="rgba(0,255,209,0.12)" stroke="#00FFD1" stroke-width="1"/>
+  <rect x="866" y="245" width="14" height="30" rx="1" fill="rgba(0,255,209,0.12)" stroke="#00FFD1" stroke-width="1"/>
+  <rect x="866" y="290" width="14" height="30" rx="1" fill="rgba(0,255,209,0.12)" stroke="#00FFD1" stroke-width="1"/>
+  <rect x="866" y="335" width="14" height="30" rx="1" fill="rgba(0,255,209,0.12)" stroke="#00FFD1" stroke-width="1"/>
+  <rect x="866" y="380" width="14" height="30" rx="1" fill="rgba(0,255,209,0.12)" stroke="#00FFD1" stroke-width="1"/>
+  <!-- Bottom dock doors -->
+  <rect x="700" y="496" width="28" height="12" rx="1" fill="rgba(0,255,209,0.12)" stroke="#00FFD1" stroke-width="1"/>
+  <rect x="745" y="496" width="28" height="12" rx="1" fill="rgba(0,255,209,0.12)" stroke="#00FFD1" stroke-width="1"/>
+  <rect x="790" y="496" width="28" height="12" rx="1" fill="rgba(0,255,209,0.12)" stroke="#00FFD1" stroke-width="1"/>
+  <text x="773" y="335" class="zone-label" fill="#00FFD1">DISPATCH</text>
+  <text x="773" y="347" class="zone-sub" fill="#00FFD1">8 OUTBOUND DOCKS</text>
+  <text x="773" y="357" class="zone-sub" fill="#00FFD1">CONVEYOR-FED</text>
+  <text x="773" y="367" class="zone-sub" fill="#00FFD1">61,180 SQ FT</text>
+</g>
+
+<!-- Amenities strip bottom -->
+<rect x="28" y="476" width="140" height="22" fill="rgba(155,89,255,0.06)" stroke="rgba(155,89,255,0.25)" stroke-width="0.8"/>
+<text x="98" y="490" class="dim-txt" fill="rgba(155,89,255,0.7)" font-size="6.5" text-anchor="middle">CAFETERIA / WELFARE ZONE</text>
+
+<!-- EV Charging strip -->
+<rect x="168" y="476" width="340" height="22" fill="rgba(0,255,136,0.04)" stroke="rgba(0,255,136,0.2)" stroke-width="0.8"/>
+<text x="338" y="490" class="dim-txt" fill="rgba(0,255,136,0.6)" font-size="6.5" text-anchor="middle">⚡ EV CHARGING BAYS — 40 FAST-CHARGE STATIONS</text>
+
+<!-- ── REVEALED FOOTPATH (segments shown as man walks) -->
+<g id="fpath"></g>
+
+<!-- ── ZONE GLOW HIGHLIGHT (moves zone to zone) -->
+<rect id="zhl" x="0" y="0" width="0" height="0" rx="2" fill="none" stroke-width="0" style="pointer-events:none;transition:opacity 0.4s;opacity:0"/>
+
+<!-- ── WALKING MAN -->
+<g id="man" transform="translate(98,496)" filter="url(#fman)">
+  <circle id="mring" cx="0" cy="-8" r="0" fill="none" stroke="rgba(244,164,34,0.5)" stroke-width="1.5"/>
+  <!-- shadow -->
+  <ellipse cx="0" cy="4" rx="7" ry="2" fill="rgba(0,0,0,0.5)"/>
+  <!-- body -->
+  <ellipse cx="0" cy="-6" rx="5.5" ry="7.5" fill="#F4A422" opacity="0.95"/>
+  <!-- head -->
+  <circle cx="0" cy="-19" r="5.5" fill="#F4A422"/>
+  <!-- hard hat -->
+  <path d="M-5.5,-23 Q0,-31 5.5,-23 Z" fill="#00FFD1" opacity="0.9"/>
+  <ellipse cx="0" cy="-23" rx="6.5" ry="1.5" fill="#00FFD1" opacity="0.7"/>
+  <!-- arms -->
+  <line x1="-4.5" y1="-7" x2="-10" y2="1" stroke="#F4A422" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="4.5" y1="-7" x2="10" y2="1" stroke="#F4A422" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- legs -->
+  <line id="ll" x1="-2" y1="2" x2="-5" y2="13" stroke="#F4A422" stroke-width="2.5" stroke-linecap="round"/>
+  <line id="rl" x1="2" y1="2" x2="5" y2="13" stroke="#F4A422" stroke-width="2.5" stroke-linecap="round"/>
+</g>
+
+<!-- Footstep circles container -->
+<g id="fsteps"></g>
+</svg>
+</div>
+
+<div class="step-label" id="sLabel">SPACE / CLICK → TO BEGIN · A = AUTOPLAY · ← → NAVIGATE</div>
+<div class="controls">
+  <button class="ctrl-btn" onclick="prevZone()">◀ PREV</button>
+  <div class="cdivider"></div>
+  <button class="ctrl-btn" id="btnAuto" onclick="toggleAuto()">▶ AUTO</button>
+  <div class="cdivider"></div>
+  <button class="ctrl-btn" onclick="nextZone()">NEXT ▶</button>
+  <div class="cdivider"></div>
+  <div class="dots" id="dots"></div>
+  <div class="cdivider"></div>
+  <button class="ctrl-btn" onclick="resetWalk()">↺ RESET</button>
+</div>
+
+<script>
+const ZONES = [
+  {tag:'ENTRY',name:'ENTRANCE & SECURITY',mx:98,my:490,hx:28,hy:460,hw:140,hh:38,col:'#F4A422',path:null,
+   facts:[{i:'🔐',t:'Biometric + RFID access for all 400+ staff'},{i:'🚦',t:'Auto vehicle management — registered truck gate raise'},{i:'📹',t:'AI-CCTV with behavior analytics at all entry points'},{i:'🧰',t:'PPE vending machines — helmet, vest, safety shoes'}],
+   num:'24/7',lbl:'MANNED SECURITY'},
+
+  {tag:'ZONE 01',name:'RECEIVING — INBOUND DOCKS',mx:98,my:120,hx:28,hy:28,hw:140,hh:230,col:'#0A7E8C',path:'M 98 490 L 98 130',
+   facts:[{i:'🚛',t:'4 inbound dock doors with hydraulic dock levelers'},{i:'📅',t:'TMS-integrated appointment scheduling — zero wait'},{i:'📦',t:'LP scan + ASN match verification at gate'},{i:'⏱️',t:'Target turnaround: under 45 minutes per truck'}],
+   num:'15K',lbl:'SQ FT AREA'},
+
+  {tag:'ZONE 02',name:'QC & QUARANTINE',mx:98,my:308,hx:28,hy:258,hw:140,hh:110,col:'#F4A422',path:'M 98 130 L 98 310',
+   facts:[{i:'🔬',t:'Computer vision + random sampling quality checks'},{i:'🏷️',t:'Auto barcoding and labeling for unlabelled SKUs'},{i:'⚠️',t:'Dedicated hold bay for rejected or damaged goods'},{i:'📊',t:'Real-time QC dashboard integrated with WMS'}],
+   num:'5.4K',lbl:'SQ FT AREA'},
+
+  {tag:'ZONE 03',name:'AS/RS HIGH-BAY STORAGE',mx:400,my:128,hx:168,hy:28,hw:480,hh:218,col:'#00FFD1',path:'M 98 130 L 400 128',
+   facts:[{i:'🏗️',t:'10m clear height — Unit-load + Mini-load AS/RS cranes'},{i:'📦',t:'60,000+ SKUs across all product categories'},{i:'🤖',t:'Stacker cranes: 99.9% putaway/retrieval accuracy'},{i:'⚡',t:'Throughput: 500 pallets/hr | Cycle time < 2 min'}],
+   num:'104K',lbl:'SQ FT STORAGE'},
+
+  {tag:'ZONE 04',name:'MEZZANINE — WMS CONTROL',mx:718,my:88,hx:648,hy:28,hw:140,hh:148,col:'#9B59FF',path:'M 400 128 L 718 88',
+   facts:[{i:'🖥️',t:'WMS control room with live digital twin of warehouse'},{i:'🧠',t:'AI/ML demand forecasting + slotting optimization'},{i:'👥',t:'Admin offices, client meeting rooms, HR zone'},{i:'📊',t:'Live KPI dashboards: OTIF, accuracy, inventory'}],
+   num:'20.7K',lbl:'SQ FT MEZZANINE'},
+
+  {tag:'ZONE 05',name:'COLD STORAGE & FROZEN',mx:828,my:88,hx:788,hy:28,hw:80,hh:148,col:'#00AAFF',path:'M 718 88 L 828 88',
+   facts:[{i:'❄️',t:'Pharma zone: 2–8°C continuous temperature control'},{i:'🥶',t:'Frozen section: –18°C for FMCG perishables'},{i:'📡',t:'IoT sensors with 24/7 real-time temp alerts'},{i:'🔒',t:'Controlled access with dedicated gowning area'}],
+   num:'11.8K',lbl:'SQ FT COLD ZONE'},
+
+  {tag:'ZONE 06',name:'AMR PICKING ZONE',mx:338,my:320,hx:168,hy:262,hw:340,hh:136,col:'#00FF88',path:'M 400 246 L 338 322',
+   facts:[{i:'🤖',t:'300 AMRs (Kiva-style) — Goods-to-Person model'},{i:'🎯',t:'12 ergonomic pick stations | 99.9% pick accuracy'},{i:'⚡',t:'Self-charging AMRs — 45 min fast-charge, auto dock'},{i:'🛡️',t:'LiDAR + camera anti-collision on every unit'}],
+   num:'300',lbl:'AMRs DEPLOYED'},
+
+  {tag:'ZONE 07',name:'PACKING & LABELING',mx:338,my:440,hx:168,hy:398,hw:340,hh:100,col:'#FF8C00',path:'M 338 322 L 338 440',
+   facts:[{i:'📦',t:'6 automated packing lines with cobot arms for sealing'},{i:'🏷️',t:'Print-and-apply labels — 2,000 packs/hr per line'},{i:'📱',t:'QR + barcode + RFID tag for full traceability'},{i:'🌿',t:'Biodegradable packing material — 95% waste diversion'}],
+   num:'12K',lbl:'ORDERS/HR CAPACITY'},
+
+  {tag:'ZONE 08',name:'STAGING & SORTATION',mx:593,my:370,hx:508,hy:262,hw:170,hh:236,col:'#00AAFF',path:'M 338 440 L 593 370',
+   facts:[{i:'🔀',t:'Cross-belt sorter — 10,000 items/hr by carrier/route'},{i:'🚀',t:'AI lane allocation — priority, weight, destination-aware'},{i:'📊',t:'Dock scheduler assigns outbound bay in real-time'},{i:'📡',t:'Live staging view on WMS control dashboard'}],
+   num:'10K',lbl:'ITEMS/HR SORTER'},
+
+  {tag:'ZONE 09 // FINAL',name:'DISPATCH — OUTBOUND DOCKS',mx:773,my:335,hx:678,hy:176,hw:190,hh:322,col:'#00FFD1',path:'M 593 370 L 773 335',
+   facts:[{i:'🚚',t:'8 outbound dock doors — conveyor-fed from sortation'},{i:'📋',t:'Auto e-waybill generation + carrier manifest upload'},{i:'📍',t:'GPS hand-off tracking at dock point'},{i:'⏱️',t:'SLA: < 2 hrs order cut-off to truck departure'}],
+   num:'98.5%',lbl:'OTIF RATE TARGET'},
+];
+
+let cur = -1, autoTimer = null, isAuto = false;
+const man = document.getElementById('man');
+const zPanel = document.getElementById('zPanel');
+const sLabel = document.getElementById('sLabel');
+const hStatus = document.getElementById('hStatus');
+
+// Init dots
+const dotsEl = document.getElementById('dots');
+ZONES.forEach((_,i) => {
+  const d = document.createElement('div');
+  d.className='dot'; d.id=`d${i}`;
+  dotsEl.appendChild(d);
+});
+
+// Input
+document.addEventListener('keydown', e => {
+  if(e.code==='Space'){e.preventDefault();nextZone();}
+  else if(e.code==='ArrowRight') nextZone();
+  else if(e.code==='ArrowLeft') prevZone();
+  else if(e.code==='KeyA') toggleAuto();
+});
+document.getElementById('wh-svg').addEventListener('click', nextZone);
+
+// Move man with animation
+function moveTo(x, y, dur, onDone) {
+  const m = man.getAttribute('transform').match(/translate\(([^,]+),([^)]+)\)/);
+  let sx = parseFloat(m[1]), sy = parseFloat(m[2]);
+  const t0 = performance.now();
+  let step = true;
+  const stepInt = setInterval(() => {
+    step = !step;
+    document.getElementById('ll').setAttribute('x2', step ? '-8' : '-2');
+    document.getElementById('ll').setAttribute('y2', step ? '15' : '10');
+    document.getElementById('rl').setAttribute('x2', step ? '2' : '8');
+    document.getElementById('rl').setAttribute('y2', step ? '10' : '15');
+    spawnFootstep();
+  }, 180);
+
+  function frame(now) {
+    const p = Math.min((now - t0) / dur, 1);
+    const e = p < 0.5 ? 2*p*p : -1+(4-2*p)*p;
+    const cx = sx + (x-sx)*e, cy = sy + (y-sy)*e;
+    man.setAttribute('transform', `translate(${cx},${cy})`);
+    if(p < 1) requestAnimationFrame(frame);
+    else {
+      clearInterval(stepInt);
+      document.getElementById('ll').setAttribute('x2', '-5');
+      document.getElementById('ll').setAttribute('y2', '13');
+      document.getElementById('rl').setAttribute('x2', '5');
+      document.getElementById('rl').setAttribute('y2', '13');
+      // Pulse ring
+      pulseRing();
+      if(onDone) onDone();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+function pulseRing() {
+  const r = document.getElementById('mring');
+  let rad = 0;
+  const iv = setInterval(() => {
+    rad += 2;
+    r.setAttribute('r', rad);
+    r.setAttribute('stroke', `rgba(244,164,34,${0.7 - rad/40})`);
+    if(rad > 28) { clearInterval(iv); r.setAttribute('r','0'); }
+  }, 16);
+}
+
+function spawnFootstep() {
+  const m = man.getAttribute('transform').match(/translate\(([^,]+),([^)]+)\)/);
+  if(!m) return;
+  const cx = parseFloat(m[1]), cy = parseFloat(m[2]) - 5;
+  const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r','3');
+  c.setAttribute('fill','none'); c.setAttribute('stroke','rgba(244,164,34,0.5)');
+  c.setAttribute('stroke-width','1');
+  document.getElementById('fsteps').appendChild(c);
+  let r2 = 3;
+  const iv = setInterval(() => {
+    r2 += 1.2;
+    c.setAttribute('r', r2);
+    c.setAttribute('stroke', `rgba(244,164,34,${Math.max(0, 0.5 - r2/20)})`);
+    if(r2 > 14) { clearInterval(iv); c.remove(); }
+  }, 30);
+}
+
+function revealPath(pathStr, color) {
+  if(!pathStr) return;
+  const fp = document.getElementById('fpath');
+  const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+  p.setAttribute('d', pathStr);
+  p.setAttribute('stroke', color + '55');
+  p.setAttribute('stroke-width','2');
+  p.setAttribute('stroke-dasharray','8,5');
+  p.setAttribute('fill','none');
+  fp.appendChild(p);
+}
+
+function highlightZone(z) {
+  const h = document.getElementById('zhl');
+  h.setAttribute('x', z.hx); h.setAttribute('y', z.hy);
+  h.setAttribute('width', z.hw); h.setAttribute('height', z.hh);
+  h.setAttribute('fill', z.col + '12');
+  h.setAttribute('stroke', z.col);
+  h.setAttribute('stroke-width', '2.5');
+  h.style.filter = `drop-shadow(0 0 14px ${z.col}50)`;
+  h.style.opacity = '0';
+  setTimeout(() => h.style.opacity = '1', 50);
+}
+
+function showPanel(z) {
+  document.getElementById('pTag').textContent = z.tag;
+  document.getElementById('pTitle').textContent = z.name;
+  document.getElementById('pFacts').innerHTML = z.facts.map(f =>
+    `<div class="zone-fact"><span class="fact-icon">${f.i}</span><span>${f.t}</span></div>`
+  ).join('');
+  document.getElementById('pNum').textContent = z.num;
+  document.getElementById('pNum').style.color = z.col;
+  document.getElementById('pNum').style.textShadow = `0 0 18px ${z.col}70`;
+  document.getElementById('pLabel').textContent = z.lbl;
+  zPanel.style.borderColor = z.col + '45';
+  zPanel.classList.add('visible');
+}
+
+function updateDots(idx) {
+  ZONES.forEach((_,i) => {
+    const d = document.getElementById(`d${i}`);
+    d.className = 'dot';
+    if(i < idx) d.classList.add('done');
+    else if(i === idx) d.classList.add('active');
+  });
+}
+
+function goTo(idx) {
+  if(idx < 0 || idx >= ZONES.length) return;
+  cur = idx;
+  const z = ZONES[idx];
+  sLabel.textContent = `${z.tag} — ${z.name}`;
+  hStatus.textContent = `SCANNING: ${z.name}`;
+  if(z.path) revealPath(z.path, z.col);
+  highlightZone(z);
+  const m = man.getAttribute('transform').match(/translate\(([^,]+),([^)]+)\)/);
+  const dx = Math.abs(parseFloat(m[1]) - z.mx);
+  const dy = Math.abs(parseFloat(m[2]) - z.my);
+  const dur = Math.min(Math.max(Math.sqrt(dx*dx+dy*dy) * 3.5, 700), 2500);
+  moveTo(z.mx, z.my, dur);
+  showPanel(z);
+  updateDots(idx);
+}
+
+function nextZone() {
+  if(cur < ZONES.length-1) goTo(cur+1);
+  else { sLabel.textContent = '✅ WALKTHROUGH COMPLETE — PRESS ↺ TO RESET'; stopAuto(); }
+}
+function prevZone() { if(cur > 0) goTo(cur-1); }
+function resetWalk() {
+  stopAuto(); cur = -1;
+  man.setAttribute('transform','translate(98,496)');
+  document.getElementById('zhl').style.opacity='0';
+  zPanel.classList.remove('visible');
+  document.getElementById('fpath').innerHTML='';
+  document.getElementById('fsteps').innerHTML='';
+  sLabel.textContent='SPACE / CLICK → TO BEGIN · A = AUTOPLAY · ← → NAVIGATE';
+  hStatus.textContent='WAREHOUSE WALKTHROUGH // 2030 // MUMBAI PORT';
+  updateDots(-1);
+}
+function toggleAuto() { isAuto ? stopAuto() : startAuto(); }
+function startAuto() {
+  isAuto = true;
+  document.getElementById('btnAuto').textContent='⏸ PAUSE';
+  document.getElementById('btnAuto').classList.add('active');
+  autoTimer = setInterval(() => { cur < ZONES.length-1 ? nextZone() : stopAuto(); }, 4500);
+  if(cur < 0) nextZone();
+}
+function stopAuto() {
+  isAuto = false;
+  clearInterval(autoTimer);
+  document.getElementById('btnAuto').textContent='▶ AUTO';
+  document.getElementById('btnAuto').classList.remove('active');
+}
+</script>
+</body>
+</html>
